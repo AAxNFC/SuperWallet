@@ -1,8 +1,14 @@
 "use client";
 
 import { ethers } from "ethers";
-import { EthersAdapter } from "@safe-global/protocol-kit";
+import {
+  createWeb3Modal,
+  defaultConfig,
+  useWeb3ModalSigner,
+  useWeb3ModalAccount,
+} from "@web3modal/ethers5/react";
 
+import { EthersAdapter } from "@safe-global/protocol-kit";
 import SafeApiKit from "@safe-global/api-kit";
 import { SafeFactory } from "@safe-global/protocol-kit";
 import { SafeAccountConfig } from "@safe-global/protocol-kit";
@@ -11,14 +17,33 @@ import { useState } from "react";
 import { SafeTransactionDataPartial, MetaTransactionData } from "@safe-global/safe-core-sdk-types";
 
 export default function Home() {
+  const projectId = "491b125a2c55325ef23f2c11955ff58f";
+
+  const chains = [5];
+  const metadata = {
+    name: "My Website",
+    description: "My Website description",
+    url: "https://mywebsite.com",
+    icons: ["https://avatars.mywebsite.com/"],
+  };
+
+  createWeb3Modal({
+    ethersConfig: defaultConfig({ metadata }),
+    chains,
+    projectId,
+  });
+
+  const { signer, walletProvider } = useWeb3ModalSigner();
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
+
+  console.log("address: ", address, isConnected);
+
   const [safeAddress, setSafeAddress] = useState<string>();
 
   let url = process.env.NEXT_PUBLIC_GOERLI_RPC_URL!;
   let provider = new ethers.providers.JsonRpcProvider(url);
 
   const safeOwner = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY!, provider);
-
-  console.log("safeOwner", safeOwner);
 
   const ethAdapter = new EthersAdapter({
     ethers,
@@ -91,30 +116,43 @@ export default function Home() {
   return (
     <div>
       <div className="bg-red-700">Main Page</div>
-      <button className="bg-gray-600" onClick={handleCreateSafeAccount}>
-        Create Safe Account
-      </button>
       <div>
-        <button className="bg-blue-600" onClick={handleFundAccount}>
-          Fund Your Account
-        </button>
+        <w3m-button />
       </div>
-      <div className="max-w-xs my-2 overflow-hidden rounded shadow-lg">
-        <div className="px-6 py-4">
-          <div className="mb-2 text-xl font-bold">Transfer funds from your safe account</div>
-          <form className="flex flex-col">
-            <label htmlFor="name" className="mb-2 italic">
-              Address to
-            </label>
-            <input className="mb-4 border-b-2" id="name" name="name" type="text" required />
+      <div className="flex justify-center">
+        <div>
+          <button
+            className="m-4 px-4 py-2 font-bold text-white bg-blue-500 rounded-xl hover:bg-blue-700"
+            onClick={handleCreateSafeAccount}
+          >
+            Create Safe Account
+          </button>
+          <div>
             <button
-              onClick={handleSafeTransfer}
-              type="submit"
-              className="px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700"
+              className="m-4 px-4 py-2 font-bold text-white bg-blue-500 rounded-xl hover:bg-blue-700"
+              onClick={handleFundAccount}
             >
-              Send
+              Fund Your Account
             </button>
-          </form>
+          </div>
+          <div className="max-w-xs my-2 overflow-hidden rounded shadow-lg">
+            <div className="px-6 py-4">
+              <div className="mb-2 text-xl font-bold">Transfer funds from your safe account</div>
+              <form className="flex flex-col">
+                <label htmlFor="name" className="mb-2 italic">
+                  Address to
+                </label>
+                <input className="mb-4 border-b-2" id="name" name="name" type="text" required />
+                <button
+                  onClick={handleSafeTransfer}
+                  type="submit"
+                  className="px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700"
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
